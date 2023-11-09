@@ -25,20 +25,23 @@ class Job_Importer_Admin
 
   public function display_settings_page()
   {
-    echo '<div class="wrap">';
-    echo '<h1>' . esc_html(get_admin_page_title()) . '</h1>';
-    echo '<form action="options.php" method="post">';
-    settings_fields('job_importer_options');
-    do_settings_sections('job-importer');
-    submit_button('Import starten', 'primary', 'start_import');
-    echo '</form>';
-    echo '</div>';
+?>
+    <div class="wrap">
+      <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
+      <form action="options.php" method="post">
+        <?php
+        settings_fields('job_importer_options');
+        do_settings_sections('job-importer');
+        submit_button('Import starten', 'primary', 'start_import');
+        ?>
+      </form>
+    </div>
+<?php
 
     if (isset($_POST['start_import'])) {
       $this->handle_import();
     }
   }
-
 
   public function register_plugin_settings()
   {
