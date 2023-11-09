@@ -1,7 +1,6 @@
 <?php
 class Job_Importer_Admin
 {
-
   private $version;
 
   public function __construct($version)
@@ -31,7 +30,7 @@ class Job_Importer_Admin
     echo '<form action="options.php" method="post">';
     settings_fields('job_importer_options');
     do_settings_sections('job-importer');
-    submit_button('Änderungen speichern');
+    submit_button('Import starten', 'primary', 'start_import');
     echo '</form>';
     echo '</div>';
   }
