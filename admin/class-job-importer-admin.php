@@ -33,7 +33,12 @@ class Job_Importer_Admin
     submit_button('Import starten', 'primary', 'start_import');
     echo '</form>';
     echo '</div>';
+
+    if (isset($_POST['start_import'])) {
+      $this->handle_import();
+    }
   }
+
 
   public function register_plugin_settings()
   {
