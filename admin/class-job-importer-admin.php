@@ -39,47 +39,22 @@ class Job_Importer_Admin
   public function register_plugin_settings()
   {
     register_setting('job_importer_options', 'job_importer_settings');
-
     add_settings_section(
-      'job_importer_settings_section',
-      'Job Importer Einstellungen',
-      array($this, 'settings_section_callback'),
-      'job-importer'
+      'job_importer_settings_section', // ID
+      'Job Importer Einstellungen', // Title
+      array($this, 'settings_section_callback'), // Callback
+      'job-importer' // Page
     );
 
-    add_settings_field(
-      'job_importer_client_id',
-      'Client ID',
-      array($this, 'client_id_field_callback'),
-      'job-importer',
-      'job_importer_settings_section'
-    );
-
-    add_settings_field(
-      'job_importer_client_secret',
-      'Client Secret',
-      array($this, 'client_secret_field_callback'),
-      'job-importer',
-      'job_importer_settings_section'
-    );
+    // Hier können Sie zusätzliche Einstellungsfelder hinzufügen
+    // ...
   }
 
-  public function client_id_field_callback()
+  public function settings_section_callback()
   {
-    $options = get_option('job_importer_settings');
-    $client_id = isset($options['client_id']) ? esc_attr($options['client_id']) : '';
-    echo '<input type="text" id="job_importer_client_id" name="job_importer_settings[client_id]" value="' . $client_id . '" />';
+    echo '<p>Hier können Sie die Einstellungen für den Job Importer konfigurieren.</p>';
   }
 
-  public function client_secret_field_callback()
-  {
-    $options = get_option('job_importer_settings');
-    $client_secret = isset($options['client_secret']) ? esc_attr($options['client_secret']) : '';
-    echo '<input type="text" id="job_importer_client_secret" name="job_importer_settings[client_secret]" value="' . $client_secret . '" />';
-  }
-
-
-  // Callbacks für zusätzliche Einstellungsfelder können hier hinzugefügt werden
-  // Zum Beispiel für einen Client Secret oder ähnliches
-
+  // Hier können Sie zusätzliche Methoden hinzufügen, z.B. für das Registrieren von Einstellungsfeldern
+  // ...
 }
