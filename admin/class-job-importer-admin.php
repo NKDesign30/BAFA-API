@@ -2,6 +2,7 @@
 class Job_Importer_Admin
 {
   private $version;
+  private $displayed = false; // Hinzufügen dieser Eigenschaft
 
   public function __construct($version)
   {
@@ -25,6 +26,10 @@ class Job_Importer_Admin
 
   public function display_settings_page()
   {
+    if ($this->displayed) { // Überprüfen, ob die Methode bereits aufgerufen wurde
+      return;
+    }
+
 ?>
     <div class="wrap">
       <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
@@ -41,6 +46,8 @@ class Job_Importer_Admin
     if (isset($_POST['start_import'])) {
       $this->handle_import();
     }
+
+    $this->displayed = true; // Setzen Sie den Status auf true, nachdem die Methode aufgerufen wurde
   }
 
   public function register_plugin_settings()
