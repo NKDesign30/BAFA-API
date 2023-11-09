@@ -72,5 +72,5 @@ class Job_Importer_Admin
 
   // Callbacks für zusätzliche Einstellungsfelder können hier hinzugefügt werden
   // Zum Beispiel für einen Client Secret oder ähnliches
-  // ...
+
 }
