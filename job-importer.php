@@ -3,7 +3,7 @@
 /**
  * Plugin Name: Job Importer
  * Description: Importiert Jobanzeigen als 'job_listing' Beiträge in WordPress.
- * Version: 1.0
+ * Version: 1.0.5
  * Author: Niko
  * Text Domain: job-importer
  */
