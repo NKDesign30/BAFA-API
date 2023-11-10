@@ -64,24 +64,37 @@ class Job_Importer_API
     $query_args = []; // Definieren Sie hier die Abfrageparameter
     $jobs = $this->search_jobs($query_args);
 
-    if ($jobs && is_array($jobs->jobs)) {
-      foreach ($jobs->jobs as $job) {
+    if ($jobs && is_array($jobs['stellenangebote'])) {
+      foreach ($jobs['stellenangebote'] as $job) {
+        // Titel, Ort und Arbeitgeber extrahieren
+        $titel = $job['titel'] ?? 'Kein Titel verfügbar';
+        $ort = $job['arbeitsort']['ort'] ?? 'Kein Ort verfügbar';
+        $arbeitgeber = $job['arbeitgeber'] ?? 'Kein Arbeitgeber verfügbar';
+
+        // Beschreibung zusammensetzen
+        $beschreibung = "Veröffentlichungsdatum: " . ($job['aktuelleVeroeffentlichungsdatum'] ?? 'N/A') .
+          "\nModifikationszeitstempel: " . ($job['modifikationsTimestamp'] ?? 'N/A') .
+          "\nEintrittsdatum: " . ($job['eintrittsdatum'] ?? 'N/A') .
+          "\nLogo Hash ID: " . ($job['logoHashId'] ?? 'N/A') .
+          "\nHash ID: " . ($job['hashId'] ?? 'N/A');
+
+        // WordPress-Beitrag erstellen
         $post_id = wp_insert_post(array(
-          'post_title'    => wp_strip_all_tags($job->title),
-          'post_content'  => $job->description,
+          'post_title'    => wp_strip_all_tags($titel),
+          'post_content'  => $beschreibung,
           'post_status'   => 'publish',
           'post_type'     => 'job_listing',
           // Weitere Felder wie 'post_author', 'post_date', etc.
         ));
 
         if ($post_id) {
-          // Hier könnten Sie zusätzliche Metadaten speichern, z.B.:
-          update_post_meta($post_id, '_job_location', $job->location);
-          update_post_meta($post_id, '_job_company', $job->company);
+          // Metadaten speichern
+          update_post_meta($post_id, '_job_location', $ort);
+          update_post_meta($post_id, '_job_company', $arbeitgeber);
           // Weitere Metadaten wie Gehalt, Art der Anstellung, etc.
         } else {
           // Fehlerbehandlung
-          error_log('Fehler beim Erstellen des Job-Posts: ' . $job->title);
+          error_log('Fehler beim Erstellen des Job-Posts: ' . $titel);
         }
       }
     } else {

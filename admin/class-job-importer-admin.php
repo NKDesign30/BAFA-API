@@ -1,14 +1,23 @@
 <?php
 class Job_Importer_Admin
 {
+  private static $instance = null;
   private $version;
-  private $displayed = false; // Hinzufügen dieser Eigenschaft
+  private $displayed = false;
 
   public function __construct($version)
   {
     $this->version = $version;
     add_action('admin_menu', array($this, 'add_menu'));
     add_action('admin_init', array($this, 'register_plugin_settings'));
+  }
+  public static function getInstance($version)
+  {
+    if (self::$instance == null) {
+      self::$instance = new Job_Importer_Admin($version);
+    }
+
+    return self::$instance;
   }
 
   public function add_menu()
