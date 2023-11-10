@@ -16,6 +16,10 @@ class Job_Importer_API
 
   public function get_token()
   {
+    if (!function_exists('wp_remote_post')) {
+      return false;
+    }
+
     $response = wp_remote_post($this->token_url, array(
       'body' => array(
         'client_id' => $this->client_id,
@@ -34,11 +38,19 @@ class Job_Importer_API
     $body = wp_remote_retrieve_body($response);
     $data = json_decode($body);
 
-    return isset($data->access_token) ? $data->access_token : false;
+    if (!isset($data->access_token)) {
+      return false;
+    }
+
+    return $data->access_token;
   }
 
   public function search_jobs($query_args)
   {
+    if (!function_exists('wp_remote_get')) {
+      return false;
+    }
+
     $token = $this->get_token();
     if (!$token) {
       return false;
@@ -56,7 +68,13 @@ class Job_Importer_API
     }
 
     $body = wp_remote_retrieve_body($response);
-    return json_decode($body);
+    $jobs = json_decode($body, true);
+
+    if (!isset($jobs['stellenangebote']) || !is_array($jobs['stellenangebote'])) {
+      return false;
+    }
+
+    return $jobs;
   }
 
   public function import_jobs()
@@ -87,15 +105,15 @@ class Job_Importer_API
           // Weitere Felder wie 'post_author', 'post_date', etc.
         ));
 
-        if ($post_id) {
-          // Metadaten speichern
-          update_post_meta($post_id, '_job_location', $ort);
-          update_post_meta($post_id, '_job_company', $arbeitgeber);
-          // Weitere Metadaten wie Gehalt, Art der Anstellung, etc.
-        } else {
-          // Fehlerbehandlung
+        if (is_wp_error($post_id)) {
           error_log('Fehler beim Erstellen des Job-Posts: ' . $titel);
+          continue;
         }
+
+        // Metadaten speichern
+        update_post_meta($post_id, '_job_location', $ort);
+        update_post_meta($post_id, '_job_company', $arbeitgeber);
+        // Weitere Metadaten wie Gehalt, Art der Anstellung, etc.
       }
     } else {
       // Fehlerbehandlung, wenn keine Jobs gefunden oder ein Fehler aufgetreten ist
