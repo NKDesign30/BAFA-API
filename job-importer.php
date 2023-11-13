@@ -3,7 +3,7 @@
 /**
  * Plugin Name: bundesAPI
  * Description: Importiert Jobs von der API und speichert sie als Beiträge.
- * Version: 1.1.3
+ * Version: 1.1.4
  * Author: Niko
  */
 
@@ -138,7 +138,7 @@ function job_importer_get_job_details($access_token, $encodedHashID)
 
 function job_importer_get_company_logo($access_token, $hashID)
 {
-  $url = "https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v2/jobdetails/$hashID";
+  $url = "https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/ed​/v1​/arbeitgeberlogo​/$hashID";
   $options = array(
     'http' => array(
       'header'  => "OAuthAccessToken: $access_token\r\n",
