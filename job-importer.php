@@ -138,7 +138,7 @@ function job_importer_get_job_details($access_token, $encodedHashID)
 
 function job_importer_get_company_logo($access_token, $hashID)
 {
-  $url = "https://jobsuche.api.bund.dev/ed/v1/arbeitgeberlogo/$hashID";
+  $url = "https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v2/jobdetails/$hashID";
   $options = array(
     'http' => array(
       'header'  => "OAuthAccessToken: $access_token\r\n",
