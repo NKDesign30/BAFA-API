@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Plugin Name: Job Importer
+ * Plugin Name: bundesAPI
  * Description: Importiert Jobs von der API und speichert sie als Beiträge.
- * Version: 1.0.11
+ * Version: 1.1.3
  * Author: Niko
  */
 
@@ -109,8 +109,67 @@ function job_importer_get_jobs($access_token)
   $file_path = $job_api_dir . '/api_response_' . date('Y-m-d_H-i-s') . '.json';
   file_put_contents($file_path, json_encode($jobs, JSON_PRETTY_PRINT));
 
+  // Erweitern der Jobs mit Details und Logo
+  foreach ($jobs['stellenangebote'] as &$job) {
+    $encodedHashID = base64_encode($job['hashId']);
+    $job_details = job_importer_get_job_details($access_token, $encodedHashID);
+    $job['details'] = $job_details;
+
+    $logo = job_importer_get_company_logo($access_token, $job['arbeitgeberHashId']);
+    $job['logo'] = $logo;
+  }
+
   return $jobs;
 }
+
+function job_importer_get_job_details($access_token, $encodedHashID)
+{
+  $url = "https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v2/jobdetails/$encodedHashID";
+  $options = array(
+    'http' => array(
+      'header'  => "OAuthAccessToken: $access_token\r\n",
+      'method'  => 'GET'
+    )
+  );
+  $context  = stream_context_create($options);
+  $details_data = file_get_contents($url, false, $context);
+  return json_decode($details_data, true);
+}
+
+function job_importer_get_company_logo($access_token, $hashID)
+{
+  $url = "https://jobsuche.api.bund.dev/ed/v1/arbeitgeberlogo/$hashID";
+  $options = array(
+    'http' => array(
+      'header'  => "OAuthAccessToken: $access_token\r\n",
+      'method'  => 'GET'
+    )
+  );
+  $context  = stream_context_create($options);
+  $logo_data = file_get_contents($url, false, $context);
+
+  if ($logo_data === FALSE) {
+    error_log('Fehler beim Abrufen des Unternehmenslogos');
+    return null;
+  }
+
+  // Speichern des Logos im Upload-Verzeichnis
+  $upload_dir = wp_upload_dir();
+  $logo_dir = $upload_dir['basedir'] . '/Company-Logos';
+  if (!file_exists($logo_dir)) {
+    wp_mkdir_p($logo_dir);
+  }
+
+  $file_path = $logo_dir . '/' . $hashID; // Keine Dateiendung festgelegt
+  file_put_contents($file_path, $logo_data);
+
+  return $file_path;
+}
+
+
+
+
+
 
 
 // Post Erstellen 
@@ -121,12 +180,11 @@ function job_importer_create_post($job)
 
   $post_title = isset($job['titel']) ? wp_strip_all_tags($job['titel']) : 'Titel nicht verfügbar';
 
-
   // Erstellen Sie eine Beschreibung aus verfügbaren Daten
   $post_content = '';
   $post_content .= isset($job['arbeitgeber']) ? "Arbeitgeber: " . $job['arbeitgeber'] . "\n" : '';
   $post_content .= isset($job['arbeitsort']['ort']) ? "Ort: " . $job['arbeitsort']['ort'] . "\n" : '';
-  $post_content .= isset($job['beschreibung']) ? "Beschreibung: " . $job['beschreibung'] . "\n" : '';
+  $post_content .= isset($job['details']['stellenbeschreibung']) ? "Stellenbeschreibung: " . $job['details']['stellenbeschreibung'] . "\n" : '';
   $post_content .= isset($job['branchengruppe']) ? "Branchengruppe: " . $job['branchengruppe'] . "\n" : '';
   $post_content .= isset($job['branche']) ? "Branche: " . $job['branche'] . "\n" : '';
   $post_content .= isset($job['arbeitszeitmodelle']) ? "Arbeitszeitmodelle: " . implode(', ', $job['arbeitszeitmodelle']) . "\n" : '';
@@ -135,6 +193,11 @@ function job_importer_create_post($job)
   $post_content .= isset($job['fertigkeiten']) ? "Fertigkeiten: " . implode(', ', $job['fertigkeiten']) . "\n" : '';
   $post_content .= isset($job['qualifikationen']) ? "Qualifikationen: " . implode(', ', $job['qualifikationen']) . "\n" : '';
   // Fügen Sie hier weitere Felder hinzu, die Sie in der Beschreibung anzeigen möchten
+
+  // Fügen Sie das Unternehmenslogo hinzu, falls vorhanden
+  if (isset($job['logo']) && !empty($job['logo'])) {
+    $post_content .= "\nUnternehmenslogo: " . $job['logo'] . "\n";
+  }
 
   $post_data = array(
     'post_title'    => $post_title,
@@ -165,6 +228,7 @@ function job_importer_create_post($job)
     error_log('Fehler beim Erstellen des Job Listings');
   }
 }
+
 
 
 
